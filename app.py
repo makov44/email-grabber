@@ -23,7 +23,7 @@ def main(conn=None):
 
     clean_data(['us_places', 'us_crosswalk', 'zipcode', 'categories', 'places_category'], conn)
 
-    #process_data(us_crosswalk, insert_crosswalk, conn)
+    process_data(us_crosswalk, insert_crosswalk, conn)
 
     process_data(us_places, process_places, conn)
 
