@@ -48,6 +48,7 @@ def insert_categories(lines, conn):
     cur.close()
     print('Executed script: {0}'.format(sql))
 
+
 def insert_places_category(lines, conn):
     sql = """INSERT INTO public.places_category(place_id, category_id) 
     VALUES(%s,%s)"""
@@ -70,7 +71,7 @@ def get_currseq(class_name, conn):
 
 def clean_data(table_names, conn):
     for name in table_names:
-        sql = 'DELETE FROM public.' + name
+        sql = 'TRUNCATE public.' + name + ' RESTART IDENTITY'
         cur = conn.cursor()
         cur.execute(sql)
         conn.commit()
