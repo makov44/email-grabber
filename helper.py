@@ -8,6 +8,7 @@ def create_categories(lines, curr_sequence):
     global categories
     places_categories = ()
     for line in lines:
+        curr_sequence = curr_sequence + 1
         if not line[18] or not line[19]:
             continue
 
@@ -21,7 +22,6 @@ def create_categories(lines, curr_sequence):
             if category not in categories:
                 categories += (category,)
 
-            curr_sequence = curr_sequence + 1
             place_category = (curr_sequence, category_ids[i])
             places_categories += (place_category,)
 
