@@ -2,7 +2,7 @@ from DataAccess.connector import connector
 
 
 def insert_crosswalk(lines, conn):
-    lines = [tuple(x) for x in lines]
+    lines = [tuple(x) for x in lines if(len(x) == 5)]
     sql = """INSERT INTO public.us_crosswalk(factual_id, facebook_id, facebook_url, twitter_id, twitter_url) 
     VALUES(%s,%s,%s,%s,%s)"""
     cur = conn.cursor()
@@ -13,7 +13,7 @@ def insert_crosswalk(lines, conn):
 
 
 def insert_places(lines, conn):
-    lines = [tuple(x) for x in lines]
+    lines = [tuple(x) for x in lines if(len(x) == 25)]
     sql = """INSERT INTO public.us_places(factual_id, name, address, address_extended, po_box, 
     locality, region, post_town, admin_region, post_code, country, tel, fax, latitude, longitude,
     neighborhood, website, email, category_ids, category_lables, chaine_name, chain_id, hours, 

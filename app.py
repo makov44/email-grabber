@@ -23,11 +23,11 @@ def main(conn=None):
 
     clean_data(['us_places', 'us_crosswalk', 'zipcode', 'categories', 'places_category'], conn)
 
+    process_data(zipinfo, insert_zipcodes, conn)
+
     process_data(us_crosswalk, insert_crosswalk, conn)
 
     process_data(us_places, process_places, conn)
-
-    process_data(zipinfo, insert_zipcodes, conn)
 
     insert_categories(categories)
 
