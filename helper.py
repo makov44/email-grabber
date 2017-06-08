@@ -8,6 +8,8 @@ def create_categories(lines, curr_sequence):
     global categories
     places_categories = ()
     for line in lines:
+        if len(line) != 25:
+            continue
         curr_sequence = curr_sequence + 1
         if not line[18] or not line[19]:
             continue

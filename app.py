@@ -11,8 +11,7 @@ logger = logging.getLogger('main')
 
 
 @error_handler(logger)
-@connector
-def main(conn=None):
+def main():
     args = sys.argv[1:]
     if args is None or len(args) < 3:
         raise Exception('Failed to run script. Please provide file names as arguments')
@@ -21,21 +20,21 @@ def main(conn=None):
     us_places = args[1]
     zipinfo = args[2]
 
-    clean_data(['us_places', 'us_crosswalk', 'zipcode', 'categories', 'places_category'], conn)
+    clean_data(['us_places', 'us_crosswalk', 'zipcode', 'categories', 'places_category'], cur=None)
 
-    process_data(zipinfo, insert_zipcodes, conn)
+    process_data(zipinfo, insert_zipcodes)
 
-    process_data(us_crosswalk, insert_crosswalk, conn)
+    process_data(us_crosswalk, insert_crosswalk)
 
-    process_data(us_places, process_places, conn)
+    process_data(us_places, process_places)
 
     insert_categories(categories)
 
 
-def process_places(lines, conn):
-    curr_sequence = insert_places(lines, conn)
+def process_places(lines, cur):
+    curr_sequence = insert_places(lines, cur)
     places_categories = create_categories(lines, curr_sequence)
-    insert_places_category(places_categories, conn)
+    insert_places_category(places_categories, cur)
 
 
 if __name__ == "__main__":

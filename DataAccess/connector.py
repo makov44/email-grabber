@@ -30,9 +30,14 @@ def connector(f):
             # connect to the PostgreSQL server
             print('Connecting to the PostgreSQL database...')
             conn = psycopg2.connect(**params)
-            kwargs['conn'] = conn
+            cur = conn.cursor()
+            kwargs['cur'] = cur
             return f(*args, **kwargs)
         finally:
+            if conn is not None:
+                conn.commit()
+            if cur is not None:
+                cur.close()
             if conn is not None:
                 conn.close()
                 print('Database connection closed.')

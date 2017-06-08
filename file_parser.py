@@ -1,7 +1,9 @@
 import csv
+from DataAccess.connector import connector
 
 
-def process_data(file_path, f, conn):
+@connector
+def process_data(file_path, f, cur=None):
     try:
         with open(file_path, 'r') as file:
             reader = csv.reader(file, dialect='excel-tab')
@@ -9,7 +11,7 @@ def process_data(file_path, f, conn):
             size = 10000
             i = 1
             for chunk in gen_chunk(reader, size):
-                f(chunk, conn)
+                f(chunk, cur)
                 print("Processed {0} lines".format(i*size))
                 i += 1
 
