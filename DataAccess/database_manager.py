@@ -1,4 +1,5 @@
 from DataAccess.connector import connector
+import helper
 
 
 def insert_crosswalk(lines, cur):
@@ -30,12 +31,11 @@ def insert_zipcodes(lines, cur):
     print('Executed script: {0}'.format(sql))
 
 
-def insert_categories(lines, cur):
+@connector
+def insert_categories(cur):
     sql = """INSERT INTO public.categories(category_id, description) 
     VALUES(%s,%s)"""
-
-    cur.executemany(sql, lines)
-
+    cur.executemany(sql, helper.categories)
     print('Executed script: {0}'.format(sql))
 
 

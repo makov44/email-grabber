@@ -28,7 +28,7 @@ def main():
 
     process_data(us_places, process_places)
 
-    insert_categories(categories)
+    insert_categories(cur=None)
 
 
 def process_places(lines, cur):

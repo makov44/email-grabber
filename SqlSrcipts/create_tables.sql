@@ -1,3 +1,4 @@
+DROP TABLE public.us_places;
 CREATE TABLE public.us_places
 (
     id BIGINT NOT NULL DEFAULT nextval('us_places_id_seq'::regclass),
@@ -28,6 +29,7 @@ CREATE TABLE public.us_places
     existence VARCHAR(255)
 );
 
+DROP TABLE public.us_crosswalk;
 CREATE TABLE public.us_crosswalk
 (
     id BIGINT NOT NULL DEFAULT nextval('us_crosswalk_id_seq'::regclass),
@@ -38,6 +40,15 @@ CREATE TABLE public.us_crosswalk
     twitter_url VARCHAR(250)
 );
 
+
+DROP INDEX public.factualid_idx;
+CREATE INDEX factualid_idx
+    ON public.us_crosswalk USING btree
+    (factual_id COLLATE pg_catalog."default")
+    TABLESPACE pg_default;
+
+
+DROP TABLE public.places_category;
 CREATE TABLE public.places_category
 (
     id BIGINT NOT NULL DEFAULT nextval('places_category_id_seq'::regclass),
@@ -45,15 +56,35 @@ CREATE TABLE public.places_category
     category_id bigint
 );
 
+DROP INDEX public.categoryid_idx;
+CREATE INDEX categoryid_idx
+    ON public.places_category USING btree
+    (category_id)
+    TABLESPACE pg_default;
+
+DROP INDEX public.placeid_idx;
+CREATE INDEX placeid_idx
+    ON public.places_category USING btree
+    (place_id)
+    TABLESPACE pg_default;
+
+DROP TABLE public.categories;
 CREATE TABLE public.categories
 (
     category_id BIGINT NOT NULL PRIMARY KEY,
     description TEXT
 );
 
+DROP TABLE public.zipcode;
 CREATE TABLE public.zipcode
 (
     id BIGINT NOT NULL DEFAULT nextval('zipcode_id_seq'::regclass),
     zipcode INT,
     population INT
-)
+);
+
+DROP INDEX public.zipcode_idx;
+CREATE INDEX zipcode_idx
+    ON public.zipcode USING btree
+    (zipcode)
+    TABLESPACE pg_default;
