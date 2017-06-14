@@ -102,7 +102,8 @@ CREATE TABLE public.emails
     phone_number VARCHAR(50),
     webmail BOOLEAN,
     pattern VARCHAR(250),
-    organization VARCHAR(250)
+    organization VARCHAR(250),
+    category_id INT
 );
 
 DROP INDEX public.zipcode_idx;
@@ -121,14 +122,19 @@ create table public.data_source_227 as
     where (pl.website = '') is false and pc.category_id = 227
     order by zip.population desc;
 
-select _inner.website , _inner.population
+ALTER TABLE public.data_source_227 ADD COLUMN processed BOOLEAN DEFAULT(FALSE);
+ALTER TABLE public.data_source_227 ADD COLUMN emails_number int;
+
+select _inner.website
 from (SELECT distinct on (website) id, factual_id, name, address, address_extended,
  po_box, locality, region, post_town, admin_region, post_code, country, tel, fax, latitude, longitude, neighborhood,
- substring(website from '^(?:https?:\/\/)?(?:[^@\n]+@)?(?:www\.)?([^:\/\n\?]+)' ) as website, email, category_ids,
-        category_lables, chaine_name, chain_id, hours, hours_display, existence, population
-	FROM public.data_source_227
-    order by website, population desc) as _inner
-    order by _inner.population desc
+ substring(website from '^(?:https?:\/\/)?(?:[^@\n]+@)?(?:www\.)?([^:\/\n\?]+\.com|[^:\/\n\?]+\.net|[^:\/\n\?]+\.org)(?:[^\.]+)?$') as website, email, category_ids,
+        category_lables, chaine_name, chain_id, hours, hours_display, existence, population, processed
+      FROM public.data_source_227
+      where processed = FALSE
+      order by website, population desc) as _inner
+  order by _inner.population desc
+LIMIT 2500
 
 
 
