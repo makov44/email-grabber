@@ -28,6 +28,7 @@ CREATE TABLE public.us_places
     hours_display Text,
     existence VARCHAR(255)
 );
+ALTER TABLE public.us_places ADD PRIMARY KEY (id);
 
 DROP TABLE public.us_crosswalk;
 CREATE TABLE public.us_crosswalk
@@ -39,6 +40,7 @@ CREATE TABLE public.us_crosswalk
     twitter_id VARCHAR(100),
     twitter_url VARCHAR(250)
 );
+ALTER TABLE public.us_crosswalk ADD PRIMARY KEY (id);
 
 
 DROP INDEX public.factualid_idx;
@@ -83,8 +85,50 @@ CREATE TABLE public.zipcode
     population INT
 );
 
+DROP TABLE public.emails;
+CREATE TABLE public.emails
+(
+    id BIGINT NOT NULL DEFAULT nextval('emails_id_seq'::regclass),
+    email VARCHAR(100) NOT NULL,
+    domain VARCHAR(250),
+    type  VARCHAR(100),
+    confidence int,
+    sources TEXT,
+    first_name VARCHAR(50),
+    last_name VARCHAR(50),
+    position VARCHAR(250),
+    linkedin VARCHAR(250),
+    twitter VARCHAR(250),
+    phone_number VARCHAR(50),
+    webmail BOOLEAN,
+    pattern VARCHAR(250),
+    organization VARCHAR(250)
+);
+
 DROP INDEX public.zipcode_idx;
 CREATE INDEX zipcode_idx
     ON public.zipcode USING btree
     (zipcode)
     TABLESPACE pg_default;
+
+create table public.data_source_227 as
+    select pl.id, pl.factual_id, pl.name, pl.address, pl.address_extended, pl.po_box, pl.locality, pl.region, pl.post_town, pl.admin_region, pl.post_code,
+    pl.country, pl.tel, pl.fax, pl.latitude, pl.longitude, pl.neighborhood, pl.website, pl.email, pl.category_ids, pl.category_lables, pl.chaine_name, pl.chain_id,
+    pl.hours, pl.hours_display, pl.existence, zip.population
+	from public.us_places as pl
+    inner join public.zipcode as zip on nullif(pl.post_code, '')::int = zip.zipcode
+    inner join public.places_category as pc on pl.id = pc.place_id
+    where (pl.website = '') is false and pc.category_id = 227
+    order by zip.population desc;
+
+select _inner.website , _inner.population
+from (SELECT distinct on (website) id, factual_id, name, address, address_extended,
+ po_box, locality, region, post_town, admin_region, post_code, country, tel, fax, latitude, longitude, neighborhood,
+ substring(website from '^(?:https?:\/\/)?(?:[^@\n]+@)?(?:www\.)?([^:\/\n\?]+)' ) as website, email, category_ids,
+        category_lables, chaine_name, chain_id, hours, hours_display, existence, population
+	FROM public.data_source_227
+    order by website, population desc) as _inner
+    order by _inner.population desc
+
+
+

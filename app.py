@@ -1,10 +1,10 @@
 import sys
 import logging.config
 from logging_config import LOGGING
-from exception import error_handler
+from handlers import error_handler
 from file_parser import *
 from helper import *
-from DataAccess.database_manager import *
+from data_access.database_manager import *
 
 logging.config.dictConfig(LOGGING)
 logger = logging.getLogger('main')

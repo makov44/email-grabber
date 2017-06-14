@@ -1,4 +1,4 @@
-from DataAccess.connector import connector
+from .connector import connector
 import helper
 
 
@@ -60,3 +60,5 @@ def clean_data(table_names, cur):
         sql = 'TRUNCATE public.' + name + ' RESTART IDENTITY'
         cur.execute(sql)
         print('Executed script: {0}'.format(sql))
+
+

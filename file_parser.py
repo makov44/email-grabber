@@ -1,5 +1,5 @@
 import csv
-from DataAccess.connector import connector
+from data_access.connector import connector
 
 
 @connector
