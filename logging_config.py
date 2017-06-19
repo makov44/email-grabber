@@ -14,6 +14,7 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'formatter': 'verbose'
         }
+
     },
     'loggers': {
         'main': {

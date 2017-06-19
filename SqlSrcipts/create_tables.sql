@@ -103,7 +103,8 @@ CREATE TABLE public.emails
     webmail BOOLEAN,
     pattern VARCHAR(250),
     organization VARCHAR(250),
-    category_id INT
+    category_id INT,
+    emails_number INT
 );
 
 DROP INDEX public.zipcode_idx;
@@ -128,12 +129,13 @@ ALTER TABLE public.data_source_227 ADD COLUMN emails_number int;
 select _inner.website
 from (SELECT distinct on (website) id, factual_id, name, address, address_extended,
  po_box, locality, region, post_town, admin_region, post_code, country, tel, fax, latitude, longitude, neighborhood,
- substring(website from '^(?:https?:\/\/)?(?:[^@\n]+@)?(?:www\.)?([^:\/\n\?]+\.com|[^:\/\n\?]+\.net|[^:\/\n\?]+\.org)(?:[^\.]+)?$') as website, email, category_ids,
-        category_lables, chaine_name, chain_id, hours, hours_display, existence, population, processed
+ substring(website from '^(?:https?:\/\/)?(?:www\.)?(?:[-0-9A-Za-z_]{1,}\.)*([-0-9A-Za-z_]{1,}\.com|[-0-9A-Za-z_]{1,}\.net|[-0-9A-Za-z_]{1,}\.org)(?:.+)?$') as website,
+          email, category_ids, category_lables, chaine_name, chain_id, hours, hours_display, existence, population, processed
       FROM public.data_source_227
       where processed = FALSE
       order by website, population desc) as _inner
-  order by _inner.population desc
+ where _inner.website is not null
+ order by _inner.population desc
 LIMIT 2500
 
 

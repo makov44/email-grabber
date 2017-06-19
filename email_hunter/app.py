@@ -1,36 +1,40 @@
 import logging.config
-from logging_config import LOGGING
+import os
 from handlers import error_handler
 from email_hunter.client import EmailHunterClient
 from email_hunter.database_manager import *
 from time import sleep
 import traceback
 
-_i = 0
-
-logging.config.dictConfig(LOGGING)
-logger = logging.getLogger('main')
-category_ids = ["4", "26", "62", "193", "219", "221", "227", "235", "269", "272"]
-_client = EmailHunterClient('4e3c330e5d7e6f1da8f7191b2be57e2fa8724208')
+script_path = os.path.dirname(__file__)
+path = os.path.join(script_path, 'logging_config.ini')
+logging.config.fileConfig(path)
+logger = logging.getLogger('root')
+category_ids = ["4", "26", "62", "193", "219", "221", "227", "235", "262", "272", "291"]
+_client = EmailHunterClient('8ed878188f5d409dd037bbbe08499c2e1b156e55')
 
 
 @error_handler(logger)
 def main():
-    for _id in category_ids:
-        rows = get_domains(_id)
-        for chunk in gen_chunk(rows, 20):
-            process(chunk, _id)
-            sleep(0.5)
+    for category_id in category_ids:
+        rows = get_domains(category_id)
+        i = 1
+        for chunk in gen_chunk(rows, 100):
+            process(chunk, category_id)
+            print("Processed domains:{0}, category id: {1}".format(i*100, category_id))
+            i += 1
 
 
-def process(chunk, _id):
+@connector
+def process(chunk, category_id, cur=None):
     for row in chunk:
         try:
             response = _client.search(row[0])
+            sleep(0.1)
             emails_number = response['meta']['results']
-            update_domain(row[0], _id, emails_number)
+            update_domain(row[0], category_id, emails_number, cur)
             if emails_number > 0:
-                insert_emails(response['data'], _id)
+                insert_emails(response['data'], category_id, emails_number, cur)
         except:
             logger.error(traceback.format_exc())
 

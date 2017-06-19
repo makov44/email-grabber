@@ -6,7 +6,7 @@ from file_parser import *
 from helper import *
 from data_access.database_manager import *
 
-logging.config.dictConfig(LOGGING)
+logging.config.fileConfig('logging_config.ini')
 logger = logging.getLogger('main')
 
 
