@@ -1,6 +1,5 @@
 import sys
 import logging.config
-from logging_config import LOGGING
 from handlers import error_handler
 from file_parser import *
 from helper import *

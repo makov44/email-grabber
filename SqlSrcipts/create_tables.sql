@@ -89,7 +89,7 @@ DROP TABLE public.emails;
 CREATE TABLE public.emails
 (
     id BIGINT NOT NULL DEFAULT nextval('emails_id_seq'::regclass),
-    email VARCHAR(100) NOT NULL,
+    email VARCHAR(250) NOT NULL,
     domain VARCHAR(250),
     type  VARCHAR(100),
     confidence int,
@@ -125,6 +125,7 @@ create table public.data_source_227 as
 
 ALTER TABLE public.data_source_227 ADD COLUMN processed BOOLEAN DEFAULT(FALSE);
 ALTER TABLE public.data_source_227 ADD COLUMN emails_number int;
+ALTER TABLE public.data_source_227 ADD COLUMN domain varchar(150);
 
 select _inner.website
 from (SELECT distinct on (website) id, factual_id, name, address, address_extended,
@@ -136,7 +137,9 @@ from (SELECT distinct on (website) id, factual_id, name, address, address_extend
       order by website, population desc) as _inner
  where _inner.website is not null
  order by _inner.population desc
-LIMIT 2500
+LIMIT 2500;
 
 
 
+UPDATE public.data_source_299 SET domain = substring(website from
+'^(?:https?:\/\/)?(?:www\.)?(?:[-0-9A-Za-z_]{1,}\.)*([-0-9A-Za-z_]{1,}\.com|[-0-9A-Za-z_]{1,}\.net|[-0-9A-Za-z_]{1,}\.org|[-0-9A-Za-z_]{1,}\.edu|[-0-9A-Za-z_]{1,}\.gov)(?:.+)?$');

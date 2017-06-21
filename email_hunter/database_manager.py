@@ -4,18 +4,16 @@ from functools import reduce
 
 @connector
 def get_domains(categoty_id, cur=None):
-    regexp = "^(?:https?:\/\/)?(?:www\.)?(?:[-0-9A-Za-z_]{1,}\.)*([-0-9A-Za-z_]{1,}\.com|[-0-9A-Za-z_]{1,}\.net|[-0-9A-Za-z_]{1,}\.org)(?:.+)?$"
-    sql = """select _inner.website 
-from (SELECT distinct on (website) id, factual_id, name, address, address_extended, 
- po_box, locality, region, post_town, admin_region, post_code, country, tel, fax, latitude, longitude, neighborhood, 
- substring(website from '{0}') 
- as website, email, category_ids, category_lables, chaine_name, chain_id, hours, hours_display, existence, population, processed
- FROM public.data_source_{1} 
- ﻿  where processed = FALSE
-    order by website, population desc) as _inner
-    where _inner.website is not null
+    sql = """select _inner.domain 
+from (SELECT distinct on (domain) id, factual_id, name, address, address_extended, po_box, locality, region,
+ post_town, admin_region, post_code, country, tel, fax, latitude, longitude, neighborhood, website, email, 
+ category_ids, category_lables, chaine_name, chain_id, hours, hours_display, existence, population, processed,
+  emails_number, domain
+ FROM public.data_source_{0} 
+ ﻿  where processed = FALSE and domain is not NULL 
+    order by domain, population desc) as _inner   
     order by _inner.population desc
-    limit 200""".format(regexp, categoty_id)
+    limit 500""".format(categoty_id)
     cur.execute(sql)
     rows = cur.fetchall()
     print('Executed script: {0}'.format(sql))
@@ -48,8 +46,7 @@ def reduce_sources(sources):
 
 
 def update_domain(domain, category_id, emails_number,  cur):
-    regexp = "^(?:https?:\/\/)?(?:www\.)?(?:[-0-9A-Za-z_]{1,}\.)*([-0-9A-Za-z_]{1,}\.com|[-0-9A-Za-z_]{1,}\.net|[-0-9A-Za-z_]{1,}\.org)(?:.+)?$"
     sql = "UPDATE public.data_source_" + str(category_id) + " SET processed=TRUE, emails_number=" + str(emails_number) + \
-          " WHERE  substring(website from '" + regexp + "') = '" + domain + "'"
+          " WHERE  domain = '" + domain + "'"
     cur.execute(sql)
     print('Executed script {0}'.format(sql))
