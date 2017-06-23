@@ -13,7 +13,7 @@ from (SELECT distinct on (domain) id, factual_id, name, address, address_extende
  ﻿  where processed = FALSE and domain is not NULL 
     order by domain, population desc) as _inner   
     order by _inner.population desc
-    limit 500""".format(categoty_id)
+    limit 5000""".format(categoty_id)
     cur.execute(sql)
     rows = cur.fetchall()
     print('Executed script: {0}'.format(sql))

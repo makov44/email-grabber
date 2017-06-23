@@ -9,7 +9,7 @@ script_path = os.path.dirname(__file__)
 path = os.path.join(script_path, 'logging_config.ini')
 logging.config.fileConfig(path)
 logger = logging.getLogger('root')
-category_ids = ["4", "26", "62", "193", "219", "227", "235", "262", "269", "272", "291", "299"]
+category_ids = ["272"]
 _client = EmailHunterClient('8ed878188f5d409dd037bbbe08499c2e1b156e55')
 
 

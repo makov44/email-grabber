@@ -1,7 +1,7 @@
 import psycopg2
 from configparser import ConfigParser
 import os
-
+import functools
 
 def config(filename='database.ini', section='postgresql'):
     parser = ConfigParser()
@@ -21,6 +21,7 @@ def config(filename='database.ini', section='postgresql'):
 
 
 def connector(f):
+    @functools.wraps(f)
     def wrapper_func(*args, **kwargs):
         """ Connect to the PostgreSQL database server """
         conn = None
