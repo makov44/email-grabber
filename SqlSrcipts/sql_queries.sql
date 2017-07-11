@@ -18,19 +18,6 @@ ALTER TABLE public.data_source_227 ADD COLUMN domain varchar(150);
 UPDATE public.data_source_299 SET domain = substring(website from
 '^(?:https?:\/\/)?(?:www\.)?(?:[-0-9A-Za-z_]{1,}\.)*([-0-9A-Za-z_]{1,}\.com|[-0-9A-Za-z_]{1,}\.net|[-0-9A-Za-z_]{1,}\.org|[-0-9A-Za-z_]{1,}\.edu|[-0-9A-Za-z_]{1,}\.gov)(?:.+)?$');
 
-select _inner.website
-from (SELECT distinct on (website) id, factual_id, name, address, address_extended,
- po_box, locality, region, post_town, admin_region, post_code, country, tel, fax, latitude, longitude, neighborhood,
- substring(website from '^(?:https?:\/\/)?(?:www\.)?(?:[-0-9A-Za-z_]{1,}\.)*([-0-9A-Za-z_]{1,}\.com|[-0-9A-Za-z_]{1,}\.net|[-0-9A-Za-z_]{1,}\.org)(?:.+)?$') as website,
-          email, category_ids, category_lables, chaine_name, chain_id, hours, hours_display, existence, population, processed
-      FROM public.data_source_227
-      where processed = FALSE
-      order by website, population desc) as _inner
- where _inner.website is not null
- order by _inner.population desc
-LIMIT 2500;
-
-
 select _inner.domain, _inner.population
 from (SELECT distinct on (domain) id, factual_id, name, address, address_extended, po_box, locality, region,
  post_town, admin_region, post_code, country, tel, fax, latitude, longitude, neighborhood, website, email,
