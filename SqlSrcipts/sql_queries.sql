@@ -2,6 +2,8 @@ Copy (select first_name, last_name, phone_number, position, organization, email
  from public.emails where first_name = '' is false and last_name = '' is false
  and emails_number<= 60 and confidence >= 10 and category_id = 299) To '/tmp/emails_299.csv' With CSV DELIMITER ',';
 
+pg_dump --file "/tmp/emails_433911" --host "198.199.97.248" --port "5432" --username "postgres" --no-password --verbose --format=c --blobs --table "public.emails" "email_grabber"
+
 create table public.data_source_227 as
     select pl.id, pl.factual_id, pl.name, pl.address, pl.address_extended, pl.po_box, pl.locality, pl.region, pl.post_town, pl.admin_region, pl.post_code,
     pl.country, pl.tel, pl.fax, pl.latitude, pl.longitude, pl.neighborhood, pl.website, pl.email, pl.category_ids, pl.category_lables, pl.chaine_name, pl.chain_id,
@@ -54,3 +56,55 @@ WHERE id IN (SELECT id
                              ROW_NUMBER() OVER (partition BY email ORDER BY id) AS rnum
                      FROM public.emails) t
               WHERE t.rnum > 1);
+
+
+CREATE OR REPLACE FUNCTION public.get_processed_data(category_limit integer
+	)
+    RETURNS  TABLE (
+    data_source   VARCHAR(100)
+  , category text
+  , emails_number bigint
+  , processed   bigint
+  , not_processed bigint)
+    LANGUAGE 'plpgsql'
+
+    COST 100
+    VOLATILE
+    ROWS 1000
+AS $BODY$
+
+DECLARE counter integer := 0;
+		my_table_name VARCHAR(100) := '';
+		processed bigint;
+		not_processed bigint;
+BEGIN
+ 		CREATE TEMP TABLE temp_result
+        (
+             data_source VARCHAR(100),
+             proccesed bigint,
+             not_processed bigint,
+             category_id int
+        );
+        LOOP
+            counter := counter + 1;
+            my_table_name := 'data_source_' || counter::text;
+            EXIT WHEN counter > category_limit;
+            CONTINUE WHEN NOT EXISTS (
+                SELECT 1
+                FROM   information_schema.tables
+                WHERE  table_schema = 'public'
+                AND    table_name = my_table_name
+            );
+            EXECUTE format('select count(*) from (select  distinct on (domain) domain from %s where  processed = TRUE and domain is not NULL) as _inner' , 'public.' || my_table_name) INTO processed;
+            EXECUTE format('select count(*) from (select  distinct on (domain) domain from %s where  processed = FALSE and domain is not NULL) as _inner', 'public.' || my_table_name) INTO not_processed;
+            INSERT INTO temp_result VALUES (my_table_name, processed, not_processed, counter);
+        END LOOP;
+        return query select tm.data_source, cat.description, em.emails_number, tm.proccesed, tm.not_processed
+        	from temp_result as tm
+            inner join  public.categories as cat on tm.category_id = cat.category_id
+            inner join (SELECT category_id, count(*) as emails_number
+                        FROM public.emails
+                        group by category_id) as em on tm.category_id = em.category_id;
+ END;
+
+$BODY$;
