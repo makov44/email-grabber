@@ -108,3 +108,35 @@ BEGIN
  END;
 
 $BODY$;
+
+
+CREATE OR REPLACE FUNCTION public.create_csv_file_by_category(category_limit integer
+	)
+    RETURNS integer
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE
+
+AS $BODY$
+
+DECLARE counter integer := 0;
+		file_name VARCHAR(100) := '';
+BEGIN
+		counter:= 0;
+        LOOP
+            counter := counter + 1;
+            EXIT WHEN counter > category_limit;
+            CONTINUE WHEN NOT EXISTS (
+                SELECT 1
+                FROM   public.emails
+                WHERE  category_id = counter
+            );
+           file_name := '/tmp/emails_' || counter::text || '.csv';
+           EXECUTE format('Copy (select id, email, domain, type, confidence, sources, first_name, last_name, position,
+                 linkedin, twitter, phone_number, webmail, pattern, organization, category_id, emails_number
+ 			from public.emails where category_id = %s) To ''%s'' With CSV HEADER DELIMITER '',''', counter, file_name);
+        END LOOP;
+        RETURN counter;
+ END;
+
+$BODY$;
