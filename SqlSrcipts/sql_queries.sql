@@ -2,6 +2,13 @@ Copy (select first_name, last_name, phone_number, position, organization, email
  from public.emails where first_name = '' is false and last_name = '' is false
  and emails_number<= 60 and confidence >= 10 and category_id = 299) To '/tmp/emails_299.csv' With CSV DELIMITER ',';
 
+Copy (
+    select first_name, last_name, phone_number, position, organization, email, ct.description
+	 from public.emails as e
+     left join public.categories as ct on e.category_id = ct.category_id
+    where e.category_id in (219, 221, 226, 227) ORDER BY email LIMIT 90000
+) To '/tmp/emails_finance_1.csv' With CSV DELIMITER ',' HEADER;
+
 pg_dump --file "/tmp/emails_433911" --host "198.199.97.248" --port "5432" --username "postgres" --no-password --verbose --format=c --blobs --table "public.emails" "email_grabber"
 
 create table public.data_source_227 as
@@ -17,7 +24,7 @@ create table public.data_source_227 as
 ALTER TABLE public.data_source_227 ADD COLUMN processed BOOLEAN DEFAULT(FALSE);
 ALTER TABLE public.data_source_227 ADD COLUMN emails_number int;
 ALTER TABLE public.data_source_227 ADD COLUMN domain varchar(150);
-UPDATE public.data_source_299 SET domain = substring(website from
+UPDATE public.data_source_277 SET domain = substring(website from
 '^(?:https?:\/\/)?(?:www\.)?(?:[-0-9A-Za-z_]{1,}\.)*([-0-9A-Za-z_]{1,}\.com|[-0-9A-Za-z_]{1,}\.net|[-0-9A-Za-z_]{1,}\.org|[-0-9A-Za-z_]{1,}\.edu|[-0-9A-Za-z_]{1,}\.gov)(?:.+)?$');
 
 select _inner.domain, _inner.population
@@ -78,6 +85,7 @@ DECLARE counter integer := 0;
 		processed bigint;
 		not_processed bigint;
 BEGIN
+    DROP TABLE IF EXISTS temp_result;
  		CREATE TEMP TABLE temp_result
         (
              data_source VARCHAR(100),
@@ -140,3 +148,22 @@ BEGIN
  END;
 
 $BODY$;
+
+
+select * from (
+SELECT email, category_id FROM public.emails
+WHERE id IN (SELECT id
+              FROM (SELECT id,
+                             ROW_NUMBER() OVER (partition BY email, category_id ORDER BY id asc) AS rnum
+                     FROM public.emails) t
+              WHERE t.rnum > 1)
+
+UNION
+
+SELECT email, category_id FROM public.emails
+WHERE id IN (SELECT id
+              FROM (SELECT id,
+                             ROW_NUMBER() OVER (partition BY email, category_id ORDER BY id desc) AS rnum
+                     FROM public.emails) t
+              WHERE t.rnum > 1) ) as int_query
+    order by int_query.email
