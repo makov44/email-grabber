@@ -36,7 +36,7 @@ BEGIN
           EXECUTE format('ALTER TABLE %s ADD COLUMN processed BOOLEAN DEFAULT(FALSE)', 'public.' || my_table_name);
           EXECUTE format('ALTER TABLE %s ADD COLUMN emails_number int', 'public.' || my_table_name);
           EXECUTE format('ALTER TABLE %s ADD COLUMN domain varchar(150)', 'public.' || my_table_name);
-          EXECUTE format('UPDATE %s SET domain = substring(website from ''%s'')', 'public.' || my_table_name, reg_exp);
+          EXECUTE format('UPDATE %s SET domain = substring(lower(website) from ''%s'')', 'public.' || my_table_name, reg_exp);
       END LOOP;
  END;
 
