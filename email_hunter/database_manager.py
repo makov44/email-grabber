@@ -1,19 +1,23 @@
 from data_access.connector import connector
 from functools import reduce
+import logging
+import traceback
+
+logger = logging.getLogger('database_manager')
 
 
 @connector
 def get_domains(categoty_id, cur=None):
     sql = """select _inner.domain 
-from (SELECT distinct on (domain) id, factual_id, name, address, address_extended, po_box, locality, region,
- post_town, admin_region, post_code, country, tel, fax, latitude, longitude, neighborhood, website, email, 
- category_ids, category_lables, chaine_name, chain_id, hours, hours_display, existence, population, processed,
-  emails_number, domain
- FROM public.data_source_{0} 
- ﻿  where processed = FALSE and domain is not NULL 
-    order by domain, population desc) as _inner   
-    order by _inner.population desc
-    limit 100""".format(categoty_id)
+             from (SELECT distinct on (domain) id, factual_id, name, address, address_extended, po_box, locality, region,
+             post_town, admin_region, post_code, country, tel, fax, latitude, longitude, neighborhood, website, email, 
+             category_ids, category_lables, chaine_name, chain_id, hours, hours_display, existence, population, processed,
+              emails_number, domain
+             FROM public.data_source_{0} 
+             ﻿  where processed_1000 is not TRUE  and domain is not NULL and emails_number > 10 and emails_number < 1000
+                order by domain, population desc) as _inner   
+                order by _inner.population desc
+                """.format(categoty_id)
     cur.execute(sql)
     rows = cur.fetchall()
     print('Executed script: {0}'.format(sql))
@@ -45,8 +49,15 @@ def reduce_sources(sources):
     return ', '.join(reduce(reducer, sources, []))
 
 
-def update_domain(domain, category_id, emails_number,  cur):
-    sql = "UPDATE public.data_source_" + str(category_id) + " SET processed=TRUE, emails_number=" + str(emails_number) + \
-          " WHERE  domain = '" + domain + "'"
+def update_domain(domain, emails_number,  cur):
+    sql = "select category_id from public.domains_categories where domain_name = '" + domain + "'"
     cur.execute(sql)
-    print('Executed script {0}'.format(sql))
+    rows = cur.fetchall()
+    for row in rows:
+        sql = "UPDATE public.data_source_" + str(row[0]) + " SET processed=TRUE, processed_1000=TRUE, emails_number=" + str(emails_number) + \
+              " WHERE  domain = '" + domain + "'"
+        try:
+            cur.execute(sql)
+            print('Executed script {0}'.format(sql))
+        except:
+            logger.error(traceback.format_exc())

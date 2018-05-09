@@ -15,14 +15,14 @@ class EmailHunterClient:
 
         return data
 
-    def search(self, domain, offset=0, type_=None):
+    def search(self, domain, offset=0, type_=None, limit=100):
         """
         Returns all the email addresses found using one given domain name, with Email Hunter's sources.
         :param domain: The domain name to check for email addresses
         :return: A list of email addresses, with type and sources
         """
         url = self.base_url + 'domain-search'
-        payload = {'api_key': self.api_key, 'domain': domain, 'offset': offset}
+        payload = {'api_key': self.api_key, 'domain': domain, 'offset': offset, 'limit': limit}
 
         if type_:
             payload['type'] = type_
