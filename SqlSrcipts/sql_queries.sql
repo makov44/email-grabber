@@ -332,3 +332,10 @@ SELECT domain_name, count(category_id)
     group by domain_name
     having count(category_id) > 10
     order by count(category_id);
+
+Copy (
+    SELECT distinct name, address, address_extended, po_box, locality, region, post_town, admin_region, post_code, country, tel, fax, latitude, longitude, neighborhood, website, email, category_ids, category_lables, chaine_name,  population
+	FROM  public.data_source_227 as s
+    left join domains_categories as d on s.domain = d.domain_name
+    where  d.active = True and s.region = 'CA'
+) To '/tmp/info_227_loans_ca_filtered.csv' With CSV DELIMITER ',' HEADER;
