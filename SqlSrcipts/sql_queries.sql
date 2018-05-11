@@ -314,6 +314,7 @@ Copy (
     and (e.phone_number <> '')
     and e.organization <> ''
     and s.region = 'CA'
+    and d.active = True
     and e.emails_number < 200
     limit 100
 ) To '/tmp/emails_221_banking.csv' With CSV DELIMITER ',' HEADER;
@@ -323,4 +324,11 @@ Copy (
 SELECT dom_cat.category_id, count(*) as emails_number
       FROM public.emails as email
       inner join domains_categories as dom_cat on email.domain=dom_cat.domain_name
-      group by dom_cat.category_id
+      group by dom_cat.category_id;
+
+
+SELECT domain_name, count(category_id)
+	FROM public.domains_categories
+    group by domain_name
+    having count(category_id) > 10
+    order by count(category_id);
