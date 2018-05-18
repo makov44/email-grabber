@@ -2,6 +2,8 @@ Copy (select first_name, last_name, phone_number, position, organization, email
  from public.emails where first_name = '' is false and last_name = '' is false
  and emails_number<= 60 and confidence >= 10 and category_id = 299) To '/tmp/emails_299.csv' With CSV DELIMITER ',';
 
+
+
 Copy (
     select first_name, last_name, phone_number, position, organization, email, ct.description
 	 from public.emails as e
@@ -9,7 +11,7 @@ Copy (
     where e.category_id in (219, 221, 226, 227) ORDER BY email LIMIT 90000
 ) To '/tmp/emails_finance_1.csv' With CSV DELIMITER ',' HEADER;
 
-pg_dump --file "/tmp/emails_433911" --host "198.199.97.248" --port "5432" --username "postgres" --no-password --verbose --format=c --blobs --table "public.emails" "email_grabber"
+pg_restore --username "postgres" --no-password --dbname "email_grabber" --verbose "email_grabber_05_10_2018.backup"
 
 pg_dump --file "/Users/dyl/Downloads/email_grabber_11_01_2017" --host "198.199.97.248" --port "5432" --username "postgres" --no-password --verbose --format=c --blobs "email_grabber"
 
