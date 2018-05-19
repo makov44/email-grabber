@@ -8,15 +8,15 @@ logger = logging.getLogger('database_manager')
 
 @connector
 def get_domains(categoty_id, cur=None):
-    sql = """select _inner.domain 
-             from (SELECT distinct on (domain) id, factual_id, name, address, address_extended, po_box, locality, region,
-             post_town, admin_region, post_code, country, tel, fax, latitude, longitude, neighborhood, website, email, 
-             category_ids, category_lables, chaine_name, chain_id, hours, hours_display, existence, population, processed,
-              emails_number, domain
-             FROM public.data_source_{0} 
-             ﻿  where processed_1000 is not TRUE  and domain is not NULL and emails_number > 10 and emails_number < 1000
-                order by domain, population desc) as _inner   
-                order by _inner.population desc
+    sql = """SELECT count(distinct tb1.domain) 
+             FROM public.data_source_{0} as  tb1
+             inner join (SELECT domain_name
+	                    FROM public.domains_categories  
+	                    where active = True) as tb2 on tb1.domain = tb2.domain_name
+             where tb1.processed_1000 is not TRUE  
+                 and tb1.domain is not NULL 
+                 and tb1.emails_number > 10 
+                 and tb1.emails_number < 1000
                 """.format(categoty_id)
     cur.execute(sql)
     rows = cur.fetchall()
