@@ -37,7 +37,7 @@ def process(chunk, category_id, cur=None):
 
 
 def get_emails(category_id, cur, offset, row):
-    response = _client.search(row[0], offset=offset, limit=100)
+    response = _client.search(row[0], offset=offset, type="personal",  limit=100)
     emails_number = response['meta']['results']
     update_domain(row[0], emails_number, cur)
 
