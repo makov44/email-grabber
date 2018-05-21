@@ -357,3 +357,15 @@ Copy (
     left join domains_categories as d on s.domain = d.domain_name
     where  d.active = True and s.region = 'CA'
 ) To '/tmp/info_227_loans_ca_filtered.csv' With CSV DELIMITER ',' HEADER;
+
+
+﻿
+SELECT count(DISTINCT tb1.email)
+	FROM public.mail_mass_mailing_contact as tb1
+INNER JOIN (
+   SELECT tb2._domain
+   FROM   public.dblink('dbname=email_grabber','SELECT DISTINCT domain_name FROM public.domains_categories  where active = False')
+   AS     tb2(_domain text)
+) AS tb2 ON tb2._domain = substring(tb1.email from '@(.*)$')
+where tb1.opt_out is not True
+
