@@ -369,3 +369,11 @@ INNER JOIN (
 ) AS tb2 ON tb2._domain = substring(tb1.email from '@(.*)$')
 where tb1.opt_out is not True
 
+Copy (select _temp.category, c.description, count(*)
+from (select distinct d.category_id as category, e.email
+    from emails as e
+    inner join domains_categories  as d on d.domain_name = e.domain
+    where d.active is True) as _temp
+inner join categories as c on c.category_id = _temp.category
+    group by _temp.category, c.description
+    order by _temp.category) To '/tmp/emails_categories.csv' With CSV DELIMITER ',';
