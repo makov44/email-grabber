@@ -377,3 +377,13 @@ from (select distinct d.category_id as category, e.email
 inner join categories as c on c.category_id = _temp.category
     group by _temp.category, c.description
     order by _temp.category) To '/tmp/emails_categories.csv' With CSV DELIMITER ',';
+
+Copy (
+select e.email, e.first_name, e.last_name, "position",  phone_number, organization, emails_number from emails as e
+inner join (SELECT distinct domain_name
+	                    FROM public.domains_categories
+	                    where active = True and category_id in (26, 27,28,29,30,31,32,33,34,35)) as tb2 on e.domain = tb2.domain_name
+where e.type='personal' and e.emails_number < 200
+order by e.email
+offset 180000
+) To '/tmp/emails_education_4.csv' With CSV DELIMITER ',' HEADER;
