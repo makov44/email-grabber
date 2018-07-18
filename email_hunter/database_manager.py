@@ -8,15 +8,12 @@ logger = logging.getLogger('database_manager')
 
 @connector
 def get_domains(categoty_id, cur=None):
-    sql = """SELECT count(distinct tb1.domain) 
+    sql = """SELECT distinct tb1.domain
              FROM public.data_source_{0} as  tb1
              inner join (SELECT domain_name
 	                    FROM public.domains_categories  
 	                    where active = True) as tb2 on tb1.domain = tb2.domain_name
-             where tb1.processed_1000 is not TRUE  
-                 and tb1.domain is not NULL 
-                 and tb1.emails_number > 10 
-                 and tb1.emails_number < 1000
+             where tb1.processed is not TRUE  and tb1.domain is not NULL                
                 """.format(categoty_id)
     cur.execute(sql)
     rows = cur.fetchall()
@@ -54,7 +51,7 @@ def update_domain(domain, emails_number,  cur):
     cur.execute(sql)
     rows = cur.fetchall()
     for row in rows:
-        sql = "UPDATE public.data_source_" + str(row[0]) + " SET processed=TRUE, processed_1000=TRUE, emails_number=" + str(emails_number) + \
+        sql = "UPDATE public.data_source_" + str(row[0]) + " SET processed=TRUE, emails_number=" + str(emails_number) + \
               " WHERE  domain = '" + domain + "'"
         try:
             cur.execute(sql)
