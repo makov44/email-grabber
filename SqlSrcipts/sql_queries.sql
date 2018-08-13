@@ -388,49 +388,37 @@ order by e.email
 offset 180000
 ) To '/tmp/emails_education_4.csv' With CSV DELIMITER ',' HEADER;
 
-select tb.domain_, 10016/tb.count_::decimal from  
-(SELECT lower(substring(email from '(?<=@)[^.]+(?=\.)')) as domain_, (count(*)) as count_
-FROM public.mail_mass_mailing_contact
-group by domain_
-order by count(*) desc) as tb
-
-
+﻿
+﻿
 CREATE OR REPLACE FUNCTION public.rang_emails()
-RETURNS TABLE(email character varying, category text, processed bigint, not_processed bigint)
+RETURNS double precision
     LANGUAGE 'plpgsql'
     COST 100
     VOLATILE
-    ROWS 1000
 AS $BODY$
 
-DECLARE counter integer := 0;
-		my_table_name VARCHAR(100) := '';
-		total bigint;		
+DECLARE time_ double precision := 0;
+        ranking RECORD;
+        rec RECORD;
 BEGIN
-    	DROP TABLE IF EXISTS temp_result;
- 		CREATE TEMP TABLE temp_result
-        (
-             domain_ VARCHAR(100),
-             time_ decimal            
-        );
-		select tb.domain_, (select count(*)FROM public.mail_mass_mailing_contact)/tb.count_::decimal as time_ from  
-			(SELECT lower(substring(email from '(?<=@)[^.]+(?=\.)')) as domain_, (count(*)) as count_
-		FROM public.mail_mass_mailing_contact
-		group by domain_	
-		order by count(*) desc) as tb) INTO temp_result;												  
-														  
-		FOR domains IN select domain_, time_ FROM temp_result
-		LOOP													  
-			FOR emails IN select id, lower(substring(email from "(?<=@)[^.]+(?=\.)")) as domain_ 
-				FROM public.mail_mass_mailing_contact
-			LOOP           
-				Update public.mail_mass_mailing_contact VALUES (my_table_name, processed, not_processed, counter);
+
+		FOR ranking IN select tb2.domain_, tb2.time_
+        FROM (select tb.domain_, (select count(*)FROM public.mail_mass_mailing_contact)::double precision/tb.count_ as time_
+             FROM  (SELECT lower(substring(email from '(?<=@)[^.]+(?=\.)')) as domain_, (count(*)) as count_
+                    FROM public.mail_mass_mailing_contact
+                    group by domain_
+                    order by count(*) desc) as tb) AS tb2
+		LOOP
+            time_:= ranking.time_;
+			FOR rec IN select id
+                          from public.mail_mass_mailing_contact
+                          where lower(substring(email from '(?<=@)[^.]+(?=\.)')) = ranking.domain_
+			LOOP
+				Update public.mail_mass_mailing_contact SET x_rank = time_ where id = rec.id;
+                time_:=time_+ranking.time_;
 			END LOOP;
-		END LOOP;													   
-        return query select tm.data_source, cat.description, tm.proccesed, tm.not_processed
-        	from temp_result as tm
-            inner join  public.categories as cat on tm.category_id = cat.category_id;
+		END LOOP;
+        return time_;
  END;
 
 $BODY$;
-
