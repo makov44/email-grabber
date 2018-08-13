@@ -387,3 +387,9 @@ where e.type='personal' and e.emails_number < 200
 order by e.email
 offset 180000
 ) To '/tmp/emails_education_4.csv' With CSV DELIMITER ',' HEADER;
+
+select tb.domain_, 10016/tb.count_::decimal from  
+(SELECT lower(substring(email from '(?<=@)[^.]+(?=\.)')) as domain_, (count(*)) as count_
+FROM public.mail_mass_mailing_contact
+group by domain_
+order by count(*) desc) as tb
