@@ -393,3 +393,44 @@ select tb.domain_, 10016/tb.count_::decimal from
 FROM public.mail_mass_mailing_contact
 group by domain_
 order by count(*) desc) as tb
+
+
+CREATE OR REPLACE FUNCTION public.rang_emails()
+RETURNS TABLE(email character varying, category text, processed bigint, not_processed bigint)
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE
+    ROWS 1000
+AS $BODY$
+
+DECLARE counter integer := 0;
+		my_table_name VARCHAR(100) := '';
+		total bigint;		
+BEGIN
+    	DROP TABLE IF EXISTS temp_result;
+ 		CREATE TEMP TABLE temp_result
+        (
+             domain_ VARCHAR(100),
+             time_ decimal            
+        );
+		select tb.domain_, (select count(*)FROM public.mail_mass_mailing_contact)/tb.count_::decimal as time_ from  
+			(SELECT lower(substring(email from '(?<=@)[^.]+(?=\.)')) as domain_, (count(*)) as count_
+		FROM public.mail_mass_mailing_contact
+		group by domain_	
+		order by count(*) desc) as tb) INTO temp_result;												  
+														  
+		FOR domains IN select domain_, time_ FROM temp_result
+		LOOP													  
+			FOR emails IN select id, lower(substring(email from "(?<=@)[^.]+(?=\.)")) as domain_ 
+				FROM public.mail_mass_mailing_contact
+			LOOP           
+				Update public.mail_mass_mailing_contact VALUES (my_table_name, processed, not_processed, counter);
+			END LOOP;
+		END LOOP;													   
+        return query select tm.data_source, cat.description, tm.proccesed, tm.not_processed
+        	from temp_result as tm
+            inner join  public.categories as cat on tm.category_id = cat.category_id;
+ END;
+
+$BODY$;
+
