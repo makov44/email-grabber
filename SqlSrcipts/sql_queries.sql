@@ -422,3 +422,11 @@ BEGIN
  END;
 
 $BODY$;
+
+
+
+SELECT company_name, title_id, email, x_zip, x_first_name, x_last_name, x_state, x_phone, x_street, x_city, x_rank, "x_studio_field_tWvN2", "x_studio_field_dUK8V", "x_studio_field_VHjlv", "x_studio_field_TQLuw"
+FROM public.mail_mass_mailing_contact  as cont
+inner join public.mail_mass_mailing_contact_list_rel as rel on cont.id = rel.contact_id
+inner join public.mail_mail_statistics as st on st.res_id = cont.id
+where rel.list_id = 3 and nullif(st.opened::text, '') is NULL
