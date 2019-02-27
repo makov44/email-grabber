@@ -1,0 +1,5 @@
+select e.email, e.first_name, e.last_name, "position",  phone_number, organization, emails_number from emails as e
+inner join (SELECT distinct domain_name
+	                    FROM public.domains_categories
+	                    where active = True and category_id = 23) as tb2 on e.domain = tb2.domain_name
+where e.type='personal' and e.emails_number < 200
