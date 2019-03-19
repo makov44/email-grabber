@@ -5,8 +5,12 @@ inner join (SELECT distinct domain_name
 where e.type='personal' and e.emails_number < 200
 
 
-select e.email, e.first_name as "First Name", e.last_name as "Second Name", "position" as "Position",  phone_number as "Phone Number", organization as "Company", emails_number as "Emails Number" from emails as e
+select e.email, e.first_name || ' ' || e.last_name as "name", e.first_name as "First Name",
+ e.last_name as "Last Name", "position" as "Job Position",
+phone_number as "Phone", organization as "Customer Name", emails_number as "Company Size" ,
+ 'Advertising and Marketing (193)' as "Industry", 'Advertising and Marketing' as "Sales Channel" from emails as e
 inner join (SELECT distinct domain_name
 	                    FROM public.domains_categories
-	                    where active = True and category_id = 23) as tb2 on e.domain = tb2.domain_name
-where e.type='personal' and e.emails_number < 200 and first_name = '' is False
+	                    where active = True and category_id = 193) as tb2 on e.domain = tb2.domain_name
+where e.type='personal' and e.emails_number < 50 and first_name = '' is False and e.email not like '%.gov'
+order by e.email

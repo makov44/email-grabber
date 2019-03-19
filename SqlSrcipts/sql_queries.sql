@@ -70,119 +70,6 @@ WHERE id IN (SELECT id
 
 
 
-CREATE OR REPLACE FUNCTION public.get_processed_data(
-	category_limit integer)
-RETURNS TABLE(data_source character varying, category text, processed bigint, not_processed bigint)
-    LANGUAGE 'plpgsql'
-    COST 100
-    VOLATILE
-    ROWS 1000
-AS $BODY$
-
-DECLARE counter integer := 0;
-		my_table_name VARCHAR(100) := '';
-		processed bigint;
-		not_processed bigint;
-BEGIN
-    	DROP TABLE IF EXISTS temp_result;
- 		CREATE TEMP TABLE temp_result
-        (
-             data_source VARCHAR(100),
-             proccesed bigint,
-             not_processed bigint,
-             category_id int
-        );
-        LOOP
-            counter := counter + 1;
-            my_table_name := 'data_source_' || counter::text;
-            EXIT WHEN counter > category_limit;
-            CONTINUE WHEN NOT EXISTS (
-                SELECT 1
-                FROM   information_schema.tables
-                WHERE  table_schema = 'public'
-                AND    table_name = my_table_name
-            );
-            EXECUTE format('SELECT count(distinct tb1.domain)
-             FROM %s as  tb1
-             inner join (SELECT domain_name
-	                    FROM public.domains_categories  where active = True) as tb2 on tb1.domain = tb2.domain_name
-             where tb1.processed is TRUE
-                   and tb1.domain is not NULL' , 'public.' || my_table_name) INTO processed;
-            EXECUTE format('SELECT count(distinct tb1.domain)
-             FROM %s as  tb1
-             inner join (SELECT domain_name
-	                    FROM public.domains_categories  where active = True) as tb2 on tb1.domain = tb2.domain_name
-             where tb1.processed is not TRUE
-                   and tb1.domain is not NULL', 'public.' || my_table_name) INTO not_processed;
-            INSERT INTO temp_result VALUES (my_table_name, processed, not_processed, counter);
-        END LOOP;
-        return query select tm.data_source, cat.description, tm.proccesed, tm.not_processed
-        	from temp_result as tm
-            inner join  public.categories as cat on tm.category_id = cat.category_id;
- END;
-
-$BODY$;
-
-
-
-
-CREATE OR REPLACE FUNCTION public.get_processed_1000_data(
-	category_limit integer)
-RETURNS TABLE(data_source character varying, category text, processed bigint, not_processed bigint)
-    LANGUAGE 'plpgsql'
-    COST 100
-    VOLATILE
-    ROWS 1000
-AS $BODY$
-
-DECLARE counter integer := 0;
-		my_table_name VARCHAR(100) := '';
-		processed bigint;
-		not_processed bigint;
-BEGIN
-    	DROP TABLE IF EXISTS temp_result;
- 		CREATE TEMP TABLE temp_result
-        (
-             data_source VARCHAR(100),
-             proccesed bigint,
-             not_processed bigint,
-             category_id int
-        );
-        LOOP
-            counter := counter + 1;
-            my_table_name := 'data_source_' || counter::text;
-            EXIT WHEN counter > category_limit;
-            CONTINUE WHEN NOT EXISTS (
-                SELECT 1
-                FROM   information_schema.tables
-                WHERE  table_schema = 'public'
-                AND    table_name = my_table_name
-            );
-            EXECUTE format('SELECT count(distinct tb1.domain)
-             FROM %s as  tb1
-             inner join (SELECT domain_name
-	                    FROM public.domains_categories  where active = True) as tb2 on tb1.domain = tb2.domain_name
-             where tb1.processed_1000 is TRUE
-                   and tb1.domain is not NULL
-                   and tb1.emails_number > 10
-                   and tb1.emails_number < 1000' , 'public.' || my_table_name) INTO processed;
-            EXECUTE format('SELECT count(distinct tb1.domain)
-             FROM %s as  tb1
-             inner join (SELECT domain_name
-	                    FROM public.domains_categories  where active = True) as tb2 on tb1.domain = tb2.domain_name
-             where tb1.processed_1000 is not TRUE
-                   and tb1.domain is not NULL
-                   and tb1.emails_number > 10
-                   and tb1.emails_number < 1000', 'public.' || my_table_name) INTO not_processed;
-            INSERT INTO temp_result VALUES (my_table_name, processed, not_processed, counter);
-        END LOOP;
-        return query select tm.data_source, cat.description, tm.proccesed, tm.not_processed
-        	from temp_result as tm
-            inner join  public.categories as cat on tm.category_id = cat.category_id;
-END;
-
-$BODY$;
-
 
 
 
@@ -314,12 +201,6 @@ BEGIN
 $BODY$;
 
 
-UPDATE data_source_229
-SET processed_1000 = true
-where processed is  true and emails_number<=10 and processed_1000 is not true
-
-
-
 Copy (
     SELECT distinct e.email, e.first_name, e.last_name, "position",  phone_number, organization, s.website, linkedin, twitter
 	FROM public.emails as e
@@ -387,41 +268,6 @@ where e.type='personal' and e.emails_number < 200
 order by e.email
 offset 180000
 ) To '/tmp/emails_education_4.csv' With CSV DELIMITER ',' HEADER;
-
-﻿
-﻿
-CREATE OR REPLACE FUNCTION public.rang_emails()
-RETURNS double precision
-    LANGUAGE 'plpgsql'
-    COST 100
-    VOLATILE
-AS $BODY$
-
-DECLARE time_ double precision := 0;
-        ranking RECORD;
-        rec RECORD;
-BEGIN
-
-		FOR ranking IN select tb2.domain_, tb2.time_
-        FROM (select tb.domain_, (select count(*)FROM public.mail_mass_mailing_contact)::double precision/tb.count_ as time_
-             FROM  (SELECT lower(substring(email from '(?<=@)[^.]+(?=\.)')) as domain_, (count(*)) as count_
-                    FROM public.mail_mass_mailing_contact
-                    group by domain_
-                    order by count(*) desc) as tb) AS tb2
-		LOOP
-            time_:= ranking.time_;
-			FOR rec IN select id
-                          from public.mail_mass_mailing_contact
-                          where lower(substring(email from '(?<=@)[^.]+(?=\.)')) = ranking.domain_
-			LOOP
-				Update public.mail_mass_mailing_contact SET x_rank = time_ where id = rec.id;
-                time_:=time_+ranking.time_;
-			END LOOP;
-		END LOOP;
-        return time_;
- END;
-
-$BODY$;
 
 
 
