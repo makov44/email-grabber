@@ -15,7 +15,7 @@ def run():
 	VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
 
     try:
-        conn = psycopg2.connect(host="mail.smartlead.info", database="postfix", user="postgres", password="postgres")
+        conn = psycopg2.connect(host="159.65.111.199", database="postfix", user="logwriter", password="**********")
         # create a new cursor
         cur = conn.cursor()
         # execute the INSERT statement
@@ -34,13 +34,15 @@ def run():
 def get_bounced_emails():
     emails = []
     try:
-        conn = psycopg2.connect(host="mail.smartlead.info", database="postfix", user="postgres", password="postgres")
+        conn = psycopg2.connect(host="159.65.111.199", database="postfix", user="logwriter", password="********")
         # create a new cursor
         cur = conn.cursor()
         # execute the INSERT statement
         with open('bounced_emails.json') as json_file:
             data = json.load(json_file)
             timestamps = [p['timestamp'] for p in data]
+            if len(timestamps) == 0:
+                return emails
             cur.execute("SELECT timestamp FROM public.sisimai_output WHERE  timestamp in %s", (tuple(timestamps),))
             rows = cur.fetchall()
             existing_timestamps = [row[0] for row in rows]
