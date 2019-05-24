@@ -14,7 +14,7 @@ logger = logging.getLogger('root')
 category_ids = ["181", "182", "183", "184", "185", "186", "187", "188", "189", "190", "191", "192"]
 #category_ids = ["341", "340", "339", "338", "337", "336", "335", "334", "332", "331"]
 #category_ids = ["241", "242", "243"]
-_client = EmailHunterClient('8ed878188f5d409dd037bbbe08499c2e1b156e55')
+_client = EmailHunterClient('***********')
 
 
 @error_handler(logger)
